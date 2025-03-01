@@ -78,7 +78,7 @@ public class Controlador {
 	}
 	
 	public void modificarNombrePorPK() {
-		modelo.modificarNombrePorPK(vista.pedirInt());
+		modelo.modificarNombrePorPK(vista.pedirString(),vista.pedirInt());
 		vista.mostrarAlumnos(modelo.recogerAlumnos());
 	}
 	
@@ -89,7 +89,7 @@ public class Controlador {
 	}
 	
 	public void cambiarGrupo() {
-		modelo.cambiarGrupo(vista.pedirInt(), vista.pedirString());
+		modelo.cambiarGrupo(vista.pedirInt(), vista.pedirInt());
 		vista.mostrarAlumnos(modelo.recogerAlumnos());
 		
 	}

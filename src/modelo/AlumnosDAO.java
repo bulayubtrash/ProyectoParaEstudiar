@@ -15,11 +15,11 @@ public interface AlumnosDAO {
 	
 	ArrayList<Grupo> recogerGrupos();
 	
-	void modificarNombrePorPK(int pk);
+	void modificarNombrePorPK(String nombre, int pk);
 	
 	void eliminarPorPK(int pk);
 	
-	void cambiarGrupo(int nia, String nombre);
+	void cambiarGrupo(int nia, int grupo_id);
 	
 
 }
