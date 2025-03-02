@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Logger;//APUNTAR ESTOS IMPORTS
 
 import pojo.Alumno;
 import pojo.Grupo;
@@ -18,31 +18,40 @@ public class AlumnosBD implements AlumnosDAO {
 
 	@Override
 	public void insertarAlumno(Alumno a1) {
+	    String verificarGrupoSQL = "SELECT ident FROM grupo WHERE nombre = ?";
+	    String insertarSQL = "INSERT INTO alumno (nombre, apellido, genero, fechaNac, grupo_id) VALUES (?, ?, ?, ?, ?)";
 
-		String sql = "INSERT INTO alumno (nombre, apellido, genero, fechaNac, grupo_id) VALUES (?, ?, ?, ?, ?)";
+	    try (Connection conn = DBCPDataSource.getConnection();
+	         PreparedStatement verificarPS = conn.prepareStatement(verificarGrupoSQL)) {
 
-		try (Connection conn = DBCPDataSource.getConnection(); PreparedStatement ps = conn.prepareStatement(sql);) {
+	        verificarPS.setString(1, a1.getGrupo().getNombre());
+	        ResultSet rs = verificarPS.executeQuery();
 
-			ps.setString(1, a1.getNombre());
-			ps.setString(2, a1.getApellido());
-			ps.setString(3, String.valueOf(a1.getGenero()));
+	        if (!rs.next()) {
+	            logger.warn("Error: No existe un grupo con el nombre '" + a1.getGrupo().getNombre() + "'. No se insertará el alumno.");
+	            return; // 🚨 No se inserta el alumno si el grupo no existe
+	        }
 
-			java.sql.Date fecha = new java.sql.Date(a1.getFechaNac().getTime());
+	        int grupoId = rs.getInt("ident"); // ✅ Se obtiene el ID del grupo existente
 
-			ps.setDate(4, fecha);
+	        try (PreparedStatement insertarPS = conn.prepareStatement(insertarSQL)) {
+	            insertarPS.setString(1, a1.getNombre());
+	            insertarPS.setString(2, a1.getApellido());
+	            insertarPS.setString(3, String.valueOf(a1.getGenero()));
+	            insertarPS.setDate(4, new java.sql.Date(a1.getFechaNac().getTime()));
+	            insertarPS.setInt(5, grupoId); // ✅ Usa el grupo correcto
 
-			ps.setInt(5, 1); // ✅ Usa el grupo correcto
+	            int filas = insertarPS.executeUpdate();
 
-			int filas = ps.executeUpdate();
-
-			if (filas > 0) {
-				logger.info("Alumno insertado");
-			}
-
-		} catch (Exception e) {
-		    logger.error("El alumno no ha podido ser insertado", e); // ✅ Ahora muestra el error
-		}
+	            if (filas > 0) {
+	                logger.info("Alumno insertado correctamente: " + a1);
+	            }
+	        }
+	    } catch (Exception e) {
+	        logger.error("Error al insertar el alumno", e);
+	    }
 	}
+
 
 	@Override
 	public void insertarGrupo(Grupo g1) {

@@ -24,7 +24,6 @@ public class Controlador {
 			
 			switch (opcion) {
 			case 1:
-				mostrarGrupo();
 				insertarAlumno();
 				break;
 			case 2:
