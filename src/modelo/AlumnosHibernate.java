@@ -66,6 +66,8 @@ public class AlumnosHibernate implements AlumnosDAO{
 			Logger.error("Error al introducir Grupo",e);
 		}
 	}
+	
+
 
 	@Override
 	public ArrayList<Alumno> recogerAlumnos() {
