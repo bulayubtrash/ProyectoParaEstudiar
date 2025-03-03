@@ -1,6 +1,7 @@
 package modelo;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,7 +42,7 @@ public class AlumnosHibernate implements AlumnosDAO{
 			Logger.info("Alumno introducido");
 			
 		} catch (Exception e) {
-			Logger.error("Error al introducir alumno");
+			Logger.error("Error al introducir alumno",e);
 		}
 		
 		
@@ -62,37 +63,114 @@ public class AlumnosHibernate implements AlumnosDAO{
 
 			
 		} catch (Exception e) {
-			Logger.error("Error al introducir Grupo");
+			Logger.error("Error al introducir Grupo",e);
 		}
 	}
 
 	@Override
 	public ArrayList<Alumno> recogerAlumnos() {
-		// TODO Auto-generated method stub
-		return null;
+
+		try (Session se=HibernateUtil.getSessionFactory().openSession();){
+			List<Alumno>Lista = se.createQuery("FROM Alumno",Alumno.class).list();
+			Logger.info("Lista de alumnos recuperada");
+			
+			return new ArrayList<>(Lista);	
+			
+		} catch (Exception e) {
+	        Logger.error("Error al obtener la lista de alumnos", e);
+			return new ArrayList<>();
+
+		}
+		
 	}
 
 	@Override
 	public ArrayList<Grupo> recogerGrupos() {
-		// TODO Auto-generated method stub
-		return null;
+
+		try(Session se=HibernateUtil.getSessionFactory().openSession();) {
+			List<Grupo>Lista= se.createQuery("FROM Grupo",Grupo.class).list();
+			Logger.info("Lista de grupos recuperada");
+
+			return new ArrayList<>(Lista);
+			
+		} catch (Exception e) {
+	        Logger.error("Error al obtener la lista de grupos", e);
+	        return new ArrayList<>();
+		}
 	}
 
 	@Override
 	public void modificarNombrePorPK(String nombre, int pk) {
-		// TODO Auto-generated method stub
+		
+		Transaction tr=null;
+		try(Session se=HibernateUtil.getSessionFactory().openSession();) {
+			tr=se.beginTransaction();
+
+			Alumno alumno= se.get(Alumno.class, pk);
+			
+			if (alumno!=null) {
+				alumno.setNombre(nombre);
+				se.merge(alumno);
+				tr.commit();
+				Logger.info("Nombre actualizado");
+			}else{
+				Logger.error("No se encontro el alumno");
+			}
+		} catch (Exception e) {
+			Logger.error("Error al actualizar alumno",e);
+
+		}
 		
 	}
 
 	@Override
 	public void eliminarPorPK(int pk) {
-		// TODO Auto-generated method stub
+		Transaction tr= null;
+		try(Session se= HibernateUtil.getSessionFactory().openSession();) {
+			tr=se.beginTransaction();
+			
+			Alumno alumno=se.get(Alumno.class, pk);
+			if(alumno!=null) {
+				se.remove(alumno);
+				tr.commit();
+				Logger.info("Alumno eliminado");
+			}else {
+				Logger.error("El alumno no ha podido ser encontrado");
+			}
+			
+		} catch (Exception e) {
+			Logger.error("El alumno no ha podido ser eliminado",e);
+		}
 		
 	}
 
 	@Override
 	public void cambiarGrupo(int nia, int grupo_id) {
-		// TODO Auto-generated method stub
+
+		Transaction tr= null;
+		try(Session se=HibernateUtil.getSessionFactory().openSession();) {
+			tr=se.beginTransaction();
+			
+			Alumno alumno=se.get(Alumno.class, nia);
+			if(alumno==null) {
+				Logger.warn("Alumno no encontrado");
+				return;
+			}
+			
+			Grupo nuevoGrupo=se.get(Grupo.class, grupo_id);
+			if (nuevoGrupo==null) {
+				Logger.warn("Grupo no encontrado");
+				return;
+			}
+			
+			alumno.setGrupo(nuevoGrupo);
+			se.merge(alumno);
+			tr.commit();
+			
+			Logger.info("Alumno cambiado de grupo");
+		} catch (Exception e) {
+			Logger.error("Error al cambiar de grupo",e);
+		}
 		
 	}
 
